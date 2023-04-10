@@ -10,13 +10,17 @@ root.withdraw()
 file_path = filedialog.askopenfilename(title="Selecciona un archivo de Excel", filetypes=[("Excel files", "*.xlsx")])
 
 # Cargar el archivo de Excel
-df = pd.read_excel(file_path, sheet_name=None)
+df_dict = pd.read_excel(file_path, sheet_name=None)
 
 # Unir todas las hojas en un solo DataFrame
-df_merged = pd.concat(df.values(), ignore_index=True)
+df_merged = pd.concat(df_dict.values(), ignore_index=True)
+
+# Dejar solo el encabezado principal de la primera hoja
+main_header = df_dict[list(df_dict.keys())[0]].iloc[0]
+df_merged.columns = main_header
 
 # Quitar los encabezados de las hojas secundarias
-df_merged = df_merged[df_merged.columns[~df_merged.columns.duplicated()]]
+df_merged = df_merged.iloc[1:]
 
 # Guardar el archivo resultante con el nombre original más "Clean_Data_C5_2023"
 clean_file_path = file_path[:-5] + "_Clean_Data_C5_2023.xlsx"
