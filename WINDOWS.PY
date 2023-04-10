@@ -1,7 +1,15 @@
 import pandas as pd
+import tkinter as tk
+from tkinter import filedialog
+
+# Crear una ventana para seleccionar el archivo
+root = tk.Tk()
+root.withdraw()
+
+# Seleccionar el archivo de Excel
+file_path = filedialog.askopenfilename(title="Selecciona un archivo de Excel", filetypes=[("Excel files", "*.xlsx")])
 
 # Cargar el archivo de Excel
-file_path = "path/to/excel/file.xlsx"
 df = pd.read_excel(file_path, sheet_name=None)
 
 # Unir todas las hojas en un solo DataFrame
