@@ -1,34 +1,41 @@
+import pandas as pd
 import tkinter as tk
 from tkinter import filedialog
-from openpyxl import load_workbook
 
-# Creamos la ventana de selección de archivo
-root = tk.Tk()
-root.withdraw()
-
-# Abrimos el diálogo para seleccionar el archivo
-file_path = filedialog.askopenfilename(title="Seleccione un archivo de Excel",
-                                       filetypes=[("Archivos de Excel", "*.xlsx")])
-
-# Cargamos el libro de trabajo de Excel
-workbook = load_workbook(filename=file_path)
-
-# Obtenemos el nombre del archivo sin la extensión
-file_name = file_path.split("/")[-1].split(".")[0]
-
-# Creamos un nuevo libro de trabajo para almacenar los datos limpios
-clean_workbook = load_workbook(filename=file_path)
-clean_workbook.remove(clean_workbook.active)  # eliminamos la hoja de inicio predeterminada
-clean_sheet = clean_workbook.create_sheet(title=file_name)
-
-# Unimos todas las hojas en una sola hoja en el libro de trabajo limpio
-for sheet_name in workbook.sheetnames:
-    sheet = workbook[sheet_name]
-    for row in sheet.iter_rows(min_row=1, values_only=True):
-        clean_sheet.append(row)
-
-# Guardamos el libro de trabajo limpio con un nuevo nombre
-clean_file_name = f"{file_name}_Clean_Data_C5_2023.xlsx"
-clean_workbook.save(filename=clean_file_name)
-
-print(f"El archivo {clean_file_name} ha sido guardado correctamente.")
+def main():
+    # Seleccionar archivo de Excel
+    root = tk.Tk()
+    root.withdraw()
+    file_path = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx")])
+    
+    # Leer todas las hojas del archivo
+    sheets = pd.read_excel(file_path, sheet_name=None)
+    
+    # Unir todas las hojas en un solo DataFrame
+    df = pd.concat(sheets, ignore_index=True)
+    
+    # Eliminar el índice que se crea por defecto
+    df.reset_index(drop=True, inplace=True)
+    
+    # Asignar nuevos nombres a las columnas
+    new_column_names = ['CODIGO_ZONA', 'CAMPANIA', 'PAIS', 'FECHA_FACTURACION', 'CODIGO_CONSEJERA',
+                        'NIVEL_ESTRELLA', 'LINE_NUMBER', 'DESCRIPCION', 'PRECIO', 'CANTIDAD',
+                        'VALOR_TOTAL', 'COMISION', 'VALOR_NETO', 'TIPO_REGISTO']
+    df.columns = new_column_names
+    
+    # Validar que existan las columnas requeridas
+    if not all(column_name in df.columns for column_name in new_column_names):
+        missing_columns = set(new_column_names) - set(df.columns)
+        df = df.dropna(subset=missing_columns, how='all')
+    
+    # Eliminar filas duplicadas de encabezado
+    df = df.loc[df.ne(df.columns).any(axis=1)]
+    
+    # Guardar el archivo limpio con un nuevo nombre
+    output_file_path = file_path.replace('.xlsx', '_Clean_Data_C5_2023.xlsx')
+    df.to_excel(output_file_path, index=False)
+    
+    print(f"Archivo limpio guardado en: {output_file_path}")
+    
+if __name__ == '__main__':
+    main()
